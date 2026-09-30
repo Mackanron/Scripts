@@ -1,0 +1,30 @@
+#!/bin/bash
+
+#Script info
+if [ -z "$1" ]; then
+  echo "Användning: $0 -t http://IP:81 -u email -p lösenordsfil -f hostsfil"
+  exit 1
+fi
+
+#Hämta flaggor
+while getopts "t:u:p:f:" opt; do
+  case $opt in
+    t) TARGET=$OPTARG ;;
+    u) NPM_USER=$OPTARG ;;
+    p) PASSFILE=$OPTARG ;;
+    f) FILE=$OPTARG ;;
+    *) echo "Användning: $0 -t http://IP:81 -u email -p lösenordsfil -f hostsfil"; exit 1 ;;
+  esac
+done
+
+PASS=$(cat "$PASSFILE")
+
+#Hämta token till api
+TOKEN=$(curl -s -X POST $TARGET/api/tokens -H "Content-Type: application/json" -d '{"identity":"'"$NPM_USER"'", "secret":"'"$PASS"'"}' | sed 's/.*"token":"//; s/".*//')
+
+#Lägg till varje domän från filen
+while read DOMAIN HOST PORT; do
+        echo "creating $DOMAIN -> $HOST:$PORT"
+        curl -X POST $TARGET/api/nginx/proxy-hosts -H "Authorization: Bearer $TOKEN" -H "Content-Type: application/json" -d '{"domain_names":["'"$DOMAIN"'"],"forward_scheme":"http","forward_host":"'"$HOST"'","forward_port":'"$PORT"',"block_exploits":true,"allow_websocket_upgrade":true,"access_list_id":0,"certificate_id":0,"ssl_forced":false,"meta":{},"locations":[]}'
+        echo
+done < "$FILE"
