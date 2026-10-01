@@ -25,7 +25,7 @@ Alla flaggor måste anges. Lösenordsfilen ska bara innehålla lösenordet på f
 ## Exempel på domänfil:
 ```
 adguard.hemma.lan 192.168.0.25 8080
-jellyfin.hemma.lan 192.168.0.50 8096
+cml.hemma.lan 192.168.0.50 8096
 proxmox.hemma.lan 192.168.0.10 8006
 
 ```
